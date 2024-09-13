@@ -1,9 +1,6 @@
 import Vertex from '../Vertex';
 import getCanvas from '../../graph-ui/canvas/canvas';
-
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+import { delay } from '../../graph-ui/utils';
 export const Bfs = async(source: Vertex) => {
     const queue: Vertex[] = [];
     source.setVisited(true);

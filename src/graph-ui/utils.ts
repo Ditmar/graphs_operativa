@@ -1,5 +1,9 @@
 import getCanvas from './canvas/canvas';
 import Vertex from '../graph/Vertex';
+
+export function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 export interface IPoint {
     x: number;
     y: number;
