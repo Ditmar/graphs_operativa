@@ -28,9 +28,9 @@ export function drawGraph() {
     if (ctx === null) {
         throw new Error('Failed to get 2D context');
     }
-    ctx.strokeStyle = 'blue';
+    ctx.strokeStyle = 'skyblue';
     ctx.lineWidth = 0.3;
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = 'skyblue';
     const graph: Record<string, Vertex> = {};
     json.features.forEach((feature: any) => {
         if (feature.geometry.type === 'LineString') {
@@ -46,6 +46,7 @@ export function drawGraph() {
                 }
                 drawCircle(x, y, 0.6);
                 const vertex = getVertex(graph, x, y);
+
                 if (index + 1 < feature.geometry.coordinates.length) {
                     const next = feature.geometry.coordinates[index + 1];
                     const [firstCoord, secondCoord] = next;

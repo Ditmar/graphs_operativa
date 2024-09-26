@@ -4,10 +4,39 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>Geography</title>
   </head>
-  <body>
-    <canvas id="app" width="1024" height="700"></canvas>
-    <script type="module" src="/src/main.ts"></script>
+  <body style="background-color: black;">
+    <div id="elements" style="text-align: center;">
+      <div style="text-align: center;">
+        <h3 style="color: white; display: inline-block;">Algorithm: </h3>
+        <select name="selecti" id="sel">
+          <option value="Dfs">Dfs</option>
+          <option value="Bfs">Bfs</option>
+          <option value="Dijkstra">Dijkstra</option>
+          <option value="Prim">Prim</option>
+        </select>
+        <button id="draw">Draw</button>
+        <button id="clear">Clear</button>
+      </div> 
+      <div id="selects" >
+        <div id="sourceSelect">
+          <h4 style="display: inline-block; color: white; margin: 2.5px; padding: 0;">Source Vertex: </h4>
+          <select name="" id="source"></select>
+        </div>
+        <div id="destinationSelect" style="display: none;">
+          <h4 style="display: inline-block; color: white; margin: 2.5px; padding: 0;">Destination Vertex:</h4>
+          <select name="" id="destination"></select>
+        </div>
+      </div>
+      <div style=" position: relative; width: 100%; text-align: center;">
+        <canvas id="app" width="1024" height="700" style="position: absolute; top: 0; left: 0; z-index: -2;"></canvas>
+      <canvas id="foreground" width="1024" height="700" style=" position: absolute; top: 0; left: 0; z-index: -1;"></canvas>
+      </div>
+    </div>
+    
+    <script type="module" src="/src/main.ts">
+
+    </script>
   </body>
 </html>
