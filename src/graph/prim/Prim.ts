@@ -10,7 +10,7 @@ export const Prim = async (startVertex: Vertex): Promise<Edge[]> => {
     const minHeap = new MinHeap();
     const ctx = getCanvasForeground().getContext('2d');
     if (!ctx) {
-        throw new Error('Failed to get 2D context');
+        throw new Error('no se pudo obtener conexion 2D con el canvas');
     }
     addEdgesToHeap(startVertex, minHeap);
     while (!minHeap.isEmpty()) {

@@ -5,7 +5,7 @@ import MinHeap from './MinHeap';
 
 export const Dijkstra = async (source: Vertex, destination: Vertex) => {
     if (source === destination) {
-        alert("El origen y el destino son el mismo");
+        alert("El punto de partida y el de llegada son los mismos");
         return;
     }
 
@@ -16,7 +16,7 @@ export const Dijkstra = async (source: Vertex, destination: Vertex) => {
 
     const ctx = getCanvasForeground().getContext('2d');
     if (!ctx) {
-        throw new Error('Fallo al obtener el contexto 2D');
+        throw new Error('no se pudo obtener el contexto 2D');
     }
 
     while (!minHeap.isEmpty()) {
