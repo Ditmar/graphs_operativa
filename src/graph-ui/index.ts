@@ -46,19 +46,20 @@ export function drawGraph() {
                 }
                 drawCircle(x, y, 0.6);
                 const vertex = getVertex(graph, x, y);
+
                 if (index + 1 < feature.geometry.coordinates.length) {
                     const next = feature.geometry.coordinates[index + 1];
                     const [firstCoord, secondCoord] = next;
                     const {x: x2, y: y2} = transFormPoint(firstCoord, secondCoord);
                     const nextVertex = getVertex(graph, x2, y2);
-                    vertex?.addNeighbor(nextVertex, calculateDistance({x, y}, {x: x2, y: y2}));
+                    vertex?.addNeighbor(nextVertex, calculateDistance({x, y}, {x: x2, y: y2}), feature.properties.highway, feature.properties.surface, feature.properties.oneway);
                 }
                 if (index > 0) {
                     const prev = feature.geometry.coordinates[index - 1];
                     const [firstCoord, secondCoord] = prev;
                     const {x: x2, y: y2} = transFormPoint(firstCoord, secondCoord);
                     const prevVertex = getVertex(graph, x2, y2);
-                    vertex?.addNeighbor(prevVertex, calculateDistance({x, y}, {x: x2, y: y2}));
+                    vertex?.addNeighbor(prevVertex, calculateDistance({x, y}, {x: x2, y: y2}), feature.properties.highway, feature.properties.surface, feature.properties.oneway);
                 }
             });
             ctx.stroke();
