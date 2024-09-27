@@ -1,21 +1,30 @@
 import Vertex from '../Vertex';
-import getCanvas from '../../graph-ui/canvas/canvas';
-import { delay } from '../../graph-ui/utils';
-export const Bfs = async(source: Vertex) => {
+import { getCanvasForeground } from '../../graph-ui/canvas/canvas';
+import { delay, drawEdge } from '../../graph-ui/utils';
+
+export const Bfs = async (source: Vertex): Promise<void> => {
     const queue: Vertex[] = [];
     source.setVisited(true);
     queue.push(source);
-    const ctx = getCanvas().getContext('2d');
+    const ctx = getCanvasForeground().getContext('2d');
+    if (ctx === null) {
+        throw new Error('Failed to get 2D context');
+    }
+
     while (queue.length > 0) {
         const currentVertex = queue.shift();
-        currentVertex?.paint(currentVertex.getX(), currentVertex.getY(), ctx);
-        await delay(1)
-        currentVertex?.getNeighbors().forEach((edge) => {
-            const neighbor = edge.destination;
-            if (neighbor && !neighbor.visited) {
-                neighbor.setVisited(true);
-                queue.push(neighbor);
+        if (currentVertex) {
+            currentVertex.paint(currentVertex.getX(), currentVertex.getY(), ctx);
+            await delay(1); 
+            for (const edge of currentVertex.getNeighbors()) {
+                const neighbor = edge.destination;
+                if (neighbor && !neighbor.visited) {
+                    neighbor.setVisited(true);
+                    queue.push(neighbor);
+                    drawEdge(currentVertex, neighbor, ctx);
+                    await delay(1); 
+                }
             }
-        });
+        }
     }
-}
+};
