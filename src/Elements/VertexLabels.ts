@@ -1,20 +1,23 @@
 import Vertex from '../graph/Vertex';
 
-export const Labels = async (graph: Record<string, Vertex>)=>{
-    const source = document.getElementById('source');
-    const destination = document.getElementById('destination');
+export const Labels = async (graph: Record<string, Vertex>) => {
+    const source = document.getElementById('source') as HTMLSelectElement;
+    const destination = document.getElementById('destination') as HTMLSelectElement;
 
-    const fragmentSource = document.createDocumentFragment();
-    const fragmentDestination = document.createDocumentFragment();
+    const createOptionsFragment = (vertices: Vertex[]): DocumentFragment => {
+        const fragment = document.createDocumentFragment();
+        vertices.forEach(vertex => {
+            const option = document.createElement('option');
+            option.value = vertex.label;
+            option.text = vertex.label;
+            fragment.appendChild(option);
+        });
+        return fragment;
+    };
 
-    Object.values(graph).forEach(vertex => {
-        let option = document.createElement('option');
-        option.value = vertex.label;
-        option.text = vertex.label;
-        fragmentSource.appendChild(option.cloneNode(true));
-        fragmentDestination.appendChild(option);
-    });
-    source?.appendChild(fragmentSource);
-    destination?.appendChild(fragmentDestination);
-
-}
+    if (source && destination) {
+        const optionsFragment = createOptionsFragment(Object.values(graph));
+        source.appendChild(optionsFragment.cloneNode(true));
+        destination.appendChild(optionsFragment);
+    }
+};

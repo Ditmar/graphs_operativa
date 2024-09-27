@@ -1,7 +1,6 @@
 import { drawGraph } from './graph-ui/index';
-import { Run } from './Elements/Run';
-import { Labels } from './Elements/VertexLabels';
+import { InitializeGraphUI, vertexLabelSelector } from './graph-ui/Elements/InitializeGraphUI';
 
 let graph = drawGraph();
-Run(graph);
-Labels(graph);
+InitializeGraphUI(graph);
+vertexLabelSelector(graph);

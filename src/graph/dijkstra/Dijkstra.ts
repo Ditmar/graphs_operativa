@@ -3,48 +3,105 @@ import { getCanvasForeground } from '../../graph-ui/canvas/canvas';
 import { delay, drawEdge } from '../../graph-ui/utils';
 import MinHeap from './MinHeap';
 
+const highwayWeights: Record<string, number> = {
+    residential: 1.0,
+    primary: 0.8,
+    service: 1.2,
+    trunk_link: 0.9,
+    trunk: 0.85,
+    track: 1.3,
+    footway: 1.5,
+    steps: 1.5,
+    'steps:pedestrian': 1.5,
+    pedestrian: 1.5
+};
+
+const surfaceWeights: Record<string, number> = {
+    dirt: 1.5,
+    paved: 1.0,
+    asphalt: 0.9,
+    'concrete:plates': 1.0,
+    ground: 1.2,
+    unpaved: 1.8,
+    paving_stones: 1.4,
+    'concrete:lanes': 1.0,
+    'paving_stones;asphalt': 1.2
+};
+
+const calculateWeight = (edge: any, defaultWeight: number = 1.0): number => {
+    const highwayWeight = highwayWeights[edge.highway] || defaultWeight;
+    const surfaceWeight = surfaceWeights[edge.surface] || defaultWeight;
+    const onewayPenalty = edge.oneway ? 0.2 : 0;
+
+    return highwayWeight * surfaceWeight + onewayPenalty;
+};
+
 export const Dijkstra = async (source: Vertex, destination: Vertex) => {
-    if(source == destination){
-        alert("same origin and destination");
+    if (source === destination) {
+        alert("El origen y el destino son el mismo");
         return;
     }
-    const distances: Record<string, number> = {};
+
+    const distances: Record<string, number> = { [source.label]: 0 };
     const previous: Record<string, Vertex | null> = {};
     const minHeap = new MinHeap();
-
-    distances[source.label] = 0;
     minHeap.insert(source, 0);
-    const ctx = getCanvasForeground().getContext('2d');
 
-    if (ctx === null) {
-        throw new Error('Failed to get 2D context');
+    const ctx = getCanvasForeground().getContext('2d');
+    if (!ctx) {
+        throw new Error('Fallo al obtener el contexto 2D');
     }
 
     while (!minHeap.isEmpty()) {
         const current = minHeap.extractMin();
         if (!current) break;
+
         const { vertex: currentVertex, distance: currentDistance } = current;
         currentVertex.paint(currentVertex.getX(), currentVertex.getY(), ctx);
         await delay(1);
 
-        currentVertex.getNeighbors().forEach(async edge => {
-            const neighbor = edge.destination;
-            const weight = edge.weight;
-            if (neighbor) {
-                const newDistance = currentDistance + (weight || 0);
-                if (newDistance < (distances[neighbor.label] || Infinity)) {
-                    distances[neighbor.label] = newDistance;
-                    previous[neighbor.label] = currentVertex;
-                    minHeap.insert(neighbor, newDistance);
-                    drawEdge(currentVertex, neighbor, ctx);
-                    await delay(1);
-                }
-            }
-        });
+        await processNeighbors(currentVertex, currentDistance, distances, previous, minHeap, ctx);
+        
         if (currentVertex === destination) break;
     }
+
+    await drawShortestPath(destination, previous, ctx);
+    return { distances, previous };
+};
+
+const processNeighbors = async (
+    currentVertex: Vertex,
+    currentDistance: number,
+    distances: Record<string, number>,
+    previous: Record<string, Vertex | null>,
+    minHeap: MinHeap,
+    ctx: CanvasRenderingContext2D
+) => {
+    for (const edge of currentVertex.getNeighbors()) {
+        const neighbor = edge.destination;
+        const weight = edge.weight || 0;
+
+        if (neighbor) {
+            const newDistance = currentDistance + weight * calculateWeight(edge);
+            if (newDistance < (distances[neighbor.label] || Infinity)) {
+                distances[neighbor.label] = newDistance;
+                previous[neighbor.label] = currentVertex;
+                minHeap.insert(neighbor, newDistance);
+                drawEdge(currentVertex, neighbor, ctx);
+                await delay(1);
+            }
+        }
+    }
+};
+
+const drawShortestPath = async (
+    destination: Vertex,
+    previous: Record<string, Vertex | null>,
+    ctx: CanvasRenderingContext2D
+) => {
     ctx.clearRect(0, 0, getCanvasForeground().width, getCanvasForeground().height);
-    let current = destination;
+    let current: Vertex = destination;
+
     while (previous[current.label] !== null) {
         const prevVertex = previous[current.label];
         if (prevVertex) {
@@ -54,5 +111,4 @@ export const Dijkstra = async (source: Vertex, destination: Vertex) => {
             current = prevVertex;
         }
     }
-    return { distances, previous };
 };

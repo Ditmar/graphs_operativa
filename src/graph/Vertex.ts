@@ -32,12 +32,21 @@ class Vertex {
     setVisited(visited: boolean) {
         this.visited = visited;
     }
-    addNeighbor(destination: Vertex, weight: number | null) {
+    addNeighbor(destination: Vertex, weight: number | null, highway: string | undefined, surface: string | null, oneway: string | null) {
         const edge: Edge = new Edge(null, this);
         edge.setDestination(destination);
         edge.setLabel(`${this.label}_${destination.label}`);
         if (weight) {
             edge.setWeight(weight);
+        }
+        if (highway) {
+            edge.setHighway(highway);
+        }
+        if (surface) {
+            edge.setSurface(surface);
+        }
+        if (oneway) {
+            edge.setOneway(oneway);
         }
         this.neighbors.push(edge);
         return edge;

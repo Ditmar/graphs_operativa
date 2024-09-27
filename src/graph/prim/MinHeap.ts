@@ -1,28 +1,29 @@
-import Edge from "../Edge"; // Importamos Edge en lugar de Vertex
+import Edge from "../Edge";
 
 class MinHeap {
-    private heap: { edge: Edge, weight: number }[] = []; // Ahora se trabaja con aristas
-
-    // Insertamos una arista con su peso
-    insert(edge: Edge, weight: number) {
+    private heap: { edge: Edge, weight: number }[] = [];
+    insert(edge: Edge, weight: number): void {
         this.heap.push({ edge, weight });
         this.bubbleUp();
     }
 
-    // Extraemos la arista con el menor peso
     extractMin(): { edge: Edge, weight: number } | null {
-        if (this.heap.length === 0) return null;
-
+        if (this.isEmpty()) return null;
         const min = this.heap[0];
         const last = this.heap.pop();
-        if (this.heap.length > 0 && last !== undefined) {
+
+        if (this.heap.length > 0 && last) {
             this.heap[0] = last;
             this.bubbleDown();
         }
         return min;
     }
 
-    private bubbleUp() {
+    isEmpty(): boolean {
+        return this.heap.length === 0;
+    }
+
+    private bubbleUp(): void {
         let index = this.heap.length - 1;
         while (index > 0) {
             const parentIndex = Math.floor((index - 1) / 2);
@@ -31,14 +32,12 @@ class MinHeap {
             index = parentIndex;
         }
     }
-
-    private bubbleDown() {
+    private bubbleDown(): void {
         let index = 0;
         while (true) {
+            let smallest = index;
             const leftChildIndex = 2 * index + 1;
             const rightChildIndex = 2 * index + 2;
-            let smallest = index;
-
             if (leftChildIndex < this.heap.length && this.heap[leftChildIndex].weight < this.heap[smallest].weight) {
                 smallest = leftChildIndex;
             }
@@ -46,17 +45,13 @@ class MinHeap {
                 smallest = rightChildIndex;
             }
             if (smallest === index) break;
+
             this.swap(index, smallest);
             index = smallest;
         }
     }
-
-    private swap(index1: number, index2: number) {
+    private swap(index1: number, index2: number): void {
         [this.heap[index1], this.heap[index2]] = [this.heap[index2], this.heap[index1]];
-    }
-
-    isEmpty(): boolean {
-        return this.heap.length === 0;
     }
 }
 
