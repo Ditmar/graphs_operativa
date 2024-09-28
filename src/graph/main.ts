@@ -1,4 +1,4 @@
-import { Bfs } from './paths/BFS';
+import { Bfs } from './paths/Bfs';
 import Vertex from './Vertex';
 
 export const createGraph = () => {
