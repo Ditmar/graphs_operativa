@@ -4,7 +4,7 @@ class Edge {
     label: string | null;
     source: Vertex | null;
     destination: Vertex | null;
-    weight: Number
+    weight: number
     constructor(label: string | null = '', source: Vertex | null = null) {
         this.label = label;
         this.source = source;
@@ -17,11 +17,22 @@ class Edge {
     setSource(source: Vertex) {
         this.source = source;
     }
-    setWeight(weight: Number) {
+    setWeight(weight: number) {
         this.weight = weight;
     }
     setDestination(destination: Vertex) {
         this.destination = destination;
+    }
+    getWeight(): number {
+        return this.weight;
+    }
+
+    getSource(): Vertex | null {
+        return this.source;
+    }
+
+    getDestination(): Vertex | null {
+        return this.destination;
     }
 }
 export default Edge;

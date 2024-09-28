@@ -30,7 +30,7 @@ class Vertex {
     setVisited(visited: boolean) {
         this.visited = visited;
     }
-    addNeighbor(destination: Vertex, weight: Number | null) {
+    addNeighbor(destination: Vertex, weight: number | null) {
         const edge: Edge = new Edge(null, this);
         edge.setDestination(destination);
         edge.setLabel(`${this.label}_${destination.label}`);
@@ -53,6 +53,14 @@ class Vertex {
         ctx.fillStyle = 'black';
         ctx.moveTo(x, y);
         ctx.arc(x, y, 2, 0, 2 * Math.PI);
+        ctx.stroke();
+    }
+    drawEdge(from: Vertex, to: Vertex, ctx: CanvasRenderingContext2D, color: string = 'red') {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;      
+        ctx.moveTo(from.getX(), from.getY());
+        ctx.lineTo(to.getX(), to.getY());
         ctx.stroke();
     }
 }
