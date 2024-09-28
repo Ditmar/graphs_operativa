@@ -1,8 +1,12 @@
 import { drawGraph } from './graph-ui/index';
-import { Bfs } from './graph/paths/Bfs'
-import { Dfs } from './graph/paths/Dfs'
-const graph = drawGraph();
+import { Dijkstra } from './graph/dijkstra/Dijkstra';
+import { Prim } from './graph/prim/Prim';
+import { Dfs } from './graph/paths/Dfs';
+import { Bfs } from './graph/paths/Bfs';
 
-console.log(graph['500.52501333341934_450.13266666652635']);
-//Bfs(graph['500.52501333341934_450.13266666652635']);
-Dfs(graph['500.52501333341934_450.13266666652635']);
+const graph = drawGraph();
+// await Dijkstra(graph['114.42353777773678_229.00422222237103'], graph['1057.628800000064_306.54866666696034']);
+await Prim(graph['114.42353777773678_229.00422222237103']);
+// await Dfs(graph['114.42353777773678_229.00422222237103']);
+// await Bfs(graph['114.42353777773678_229.00422222237103']);
+

@@ -4,10 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <style>
+      body{background-color: beige;}
+    </style>
+    <title>Geography</title>
   </head>
   <body>
-    <canvas id="app" width="1024" height="700"></canvas>
-    <script type="module" src="/src/main.ts"></script>
+    <canvas id="app" width="1024" height="700" style="position: absolute; top: 0; left: 0; z-index: -2;"></canvas>
+    <canvas id="foreground" width="1024" height="700" style=" position: absolute; top: 0; left: 0; z-index: -1;"></canvas>
+    <script type="module" src="/src/main.ts">
+
+    </script>
   </body>
 </html>

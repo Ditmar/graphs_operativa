@@ -26,13 +26,22 @@ export function drawCircle(x: number, y: number, radius: number) {
 
 }
 export function getVertex(graph: Record<string, Vertex>, x: number, y: number) {
-    let vertex = null;
     if (graph[`${x}_${y}`] == null) {
         graph[`${x}_${y}`] = new Vertex(`${x}_${y}`);
-    } else {
-        vertex = graph[`${x}_${y}`];
+
     }
     graph[`${x}_${y}`].setX(x);
     graph[`${x}_${y}`].setY(y);
     return graph[`${x}_${y}`];
 }
+
+
+export function drawEdge(currentVertex: Vertex, neighbor: Vertex, ctx) {
+    ctx.beginPath();
+    ctx.moveTo(currentVertex.getX(), currentVertex.getY());
+    ctx.lineTo(neighbor.getX(), neighbor.getY());
+    ctx.strokeStyle = 'green';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+}
+
