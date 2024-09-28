@@ -1,5 +1,5 @@
 import Edge from './Edge';
-import getCanvas from '../graph-ui/canvas/canvas';
+import { getCanvasForeground } from '../graph-ui/canvas/canvas';
 
 class Vertex {
     label: string;
@@ -8,10 +8,12 @@ class Vertex {
     x: number = 0;
     y: number = 0;
     canvas: HTMLCanvasElement;
+    
     constructor(label: string) {
         this.label = label;
-        this.canvas = getCanvas();
+        this.canvas = getCanvasForeground();
     }
+
     setX(x: number) {
         this.x = x;
     }
@@ -30,7 +32,7 @@ class Vertex {
     setVisited(visited: boolean) {
         this.visited = visited;
     }
-    addNeighbor(destination: Vertex, weight: Number | null) {
+    addNeighbor(destination: Vertex, weight: number | null) {
         const edge: Edge = new Edge(null, this);
         edge.setDestination(destination);
         edge.setLabel(`${this.label}_${destination.label}`);
@@ -40,6 +42,7 @@ class Vertex {
         this.neighbors.push(edge);
         return edge;
     }
+
     paint(x: number, y: number, ctx) {
         if (this.canvas === null) {
             throw new Error('Failed to get canvas');
