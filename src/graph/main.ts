@@ -1,4 +1,6 @@
-import { Bfs } from './paths/BFS';
+import { Bfs } from './paths/Bfs';
+import { primAlgorithm } from './paths/Prim'; 
+import { dijkstraAlgorithm } from './paths/Dijkstra'; 
 import Vertex from './Vertex';
 
 export const createGraph = () => {
@@ -19,5 +21,13 @@ export const createGraph = () => {
     v5.addNeighbor(v3, 1);
     v6.addNeighbor(v4, 3);
     v6.addNeighbor(v5, 3);
+
     Bfs(v1);
-}
+
+    const mst = primAlgorithm(v1); 
+    console.log('Minimum Spanning Tree:', mst);
+
+    const shortestPaths = dijkstraAlgorithm(v1); 
+    console.log('Shortest Paths:', shortestPaths);
+};
+
