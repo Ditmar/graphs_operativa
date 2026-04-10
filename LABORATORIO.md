@@ -20,7 +20,7 @@ src/
 ├── main.ts                    ← Punto de entrada, aquí activas los algoritmos
 ├── graph/
 │   ├── Vertex.ts              ← Clase Nodo (label, x, y, vecinos, distancia...)
-│   ├── Edge.ts                ← Clase Arista (source, destination, weight)
+│   ├── Edge.ts                ← Clase Arista (source, destination, weight, lanes, streetName, highway)
 │   └── paths/
 │       ├── Bfs.ts             ← Búsqueda en anchura (BFS)
 │       ├── Dfs.ts             ← Búsqueda en profundidad (DFS)
@@ -54,15 +54,24 @@ Abre `src/main.ts`. Al final del archivo encontrarás estas líneas comentadas:
 
 ```typescript
 // ── Activa el algoritmo que quieras probar ─────────────────────────────
-//Bfs(startVertex);
-//Dfs(startVertex);
-//Prim(startVertex);
-//Dijkstra(startVertex);
+// Bfs(startVertex);
+// Dfs(startVertex);
 
-// Ford-Fulkerson: define source and sink vertices
-const sourceVertex = startVertex;
-const sinkVertex = Object.values(graph)[Object.values(graph).length - 1];
-FordFulkerson(sourceVertex, sinkVertex).then((result) => { ... });
+// Prim(startVertex).then((result) => {
+//     console.log('[Prim] Peso total:', result.totalWeight, 'px');
+//     console.log('[Prim] Aristas MST:', result.edgeCount);
+// });
+
+// Dijkstra(startVertex, targetVertex).then((result) => {
+//     console.log('[Dijkstra] Distancia:', result.totalDistance, 'px');
+//     console.log('[Dijkstra] Nodos visitados:', result.visitedCount);
+// });
+
+// Ford-Fulkerson (activo por defecto):
+FordFulkerson(sourceVertex, sinkVertex).then((result) => {
+    console.log('[FF] Max Flow:', result.maxFlow);
+    console.log('[FF] Min-cut edges:', result.minCutEdges.length);
+});
 ```
 
 **Para activar un algoritmo:**
@@ -135,15 +144,24 @@ Encuentra el **camino de menor peso** entre dos vértices. Usa etiquetas tempora
 
 **Activación en `main.ts`:**
 ```typescript
-Dijkstra(startVertex);                     // Solo desde origen (sin destino fijo)
-Dijkstra(startVertex, targetVertex);       // Origen → Destino específico
+Dijkstra(startVertex).then((result) => {
+    console.log('[Dijkstra] Nodos visitados:', result.visitedCount);
+    console.log('[Dijkstra] Distancia total:', result.totalDistance);
+});
+
+// Con destino específico:
+Dijkstra(startVertex, targetVertex).then((result) => {
+    console.log('[Dijkstra] Distancia:', result.totalDistance, 'px');
+    console.log('[Dijkstra] Camino:', result.path.map(v => v.label).join(' → '));
+});
 ```
 
 Para definir un destino, primero encuentra su clave haciendo clic en el nodo:
 ```typescript
 const targetVertex = graph['CANVAS_X_CANVAS_Y'];
-Dijkstra(startVertex, targetVertex);
-```
+Dijkstra(startVertex, targetVertex).then((result) => {
+    console.log('[Dijkstra] Distancia:', result.totalDistance, 'px');
+});
 
 **Lo que verás:**
 - Nodos visitados se pintan en rojo a medida que se procesan
@@ -178,7 +196,11 @@ Dijkstra resuelve exactamente esto: a partir del nodo Hospital, expande etiqueta
 4. Activa Dijkstra con destino específico:
    ```typescript
    const targetVertex = graph['CLAVE_EMERGENCIA'];
-   Dijkstra(startVertex, targetVertex);
+   Dijkstra(startVertex, targetVertex).then((result) => {
+       console.log('[SEDES] Distancia total:', result.totalDistance, 'px');
+       console.log('[SEDES] Nodos visitados:', result.visitedCount);
+       console.log('[SEDES] Camino:', result.path.map(v => v.label).join(' → '));
+   });
    ```
 5. Observa la consola (`F12`) al terminar. Verás algo como:
    ```
@@ -234,7 +256,11 @@ Construye el **árbol de expansión mínima**: conecta todos los nodos del grafo
 
 **Activación en `main.ts`:**
 ```typescript
-Prim(startVertex);
+Prim(startVertex).then((result) => {
+    console.log('[Prim] Aristas MST:', result.edgeCount);
+    console.log('[Prim] Vértices alcanzados:', result.vertexCount);
+    console.log('[Prim] Peso total:', result.totalWeight, 'px');
+});
 ```
 
 **Lo que verás:** Las aristas del MST se dibujan en **verde** sobre el mapa.
@@ -263,7 +289,13 @@ $$\text{Costo} = \mathbf{Bs.\, 95} \text{ por metro lineal}$$
 
 ##### Pasos para calcular el presupuesto
 
-1. Ejecuta `Prim(startVertex)` y observa las aristas verdes en el canvas.
+1. Ejecuta Prim y observa las aristas verdes en el canvas:
+   ```typescript
+   Prim(startVertex).then((result) => {
+       console.log('[Prim] Peso total:', result.totalWeight, 'px');
+       console.log('[Prim] Aristas:', result.edgeCount);
+   });
+   ```
 2. Abre la consola del navegador (`F12 → Console`). Verás una línea similar a:
    ```
    [Prim] MST completado | Aristas: 843 | Peso total: 487 320 px
@@ -318,7 +350,8 @@ FordFulkerson(sourceVertex, sinkVertex).then((result) => {
 **Lo que verás en el canvas:**
 - Cada **camino aumentante** se dibuja en un color diferente (HSL rotando)
 - Cerca del punto medio de cada camino aparece el número de iteración y su **bottleneck**: `#3 bn:45.2`
-- Las **aristas del corte mínimo** (cuellos de botella reales) se dibujan en **rojo punteado**
+- Las **aristas del corte mínimo** se dibujan en **rojo punteado** con una etiqueta `flujo/capacidad` sobre cada una (verde si está saturada, naranja si no lo está)
+- Los **vértices del corte mínimo** se resaltan con un círculo blanco (radio 10 px) y un núcleo rojo (radio 5 px) con la etiqueta `bottleneck`
 
 **Lo que verás en la consola (`F12`):**
 ```
@@ -328,10 +361,13 @@ FordFulkerson(sourceVertex, sinkVertex).then((result) => {
 ...
 [FF] ── RESULT ──────────────────────────────────
 [FF] Max Flow: 215.7
-[FF] Min-cut edges:
-  nodo_X → nodo_Y  (capacity: 98.4)
-  nodo_W → nodo_Z  (capacity: 117.3)
+[FF] Min-cut edges (flujo/capacidad):
+  nodo_X → nodo_Y  [2/2] ← SATURADA
+  nodo_W → nodo_Z  [1/1] ← SATURADA
+  nodo_A → nodo_B  [1/2]
 ```
+
+Cada línea del corte mínimo muestra `[flujo actual / capacidad máxima]`. Las etiquetas marcadas con **`← SATURADA`** son las aristas completamente congestionadas — los verdaderos cuellos de botella.
 
 **Interpretación del Corte Mínimo:**
 > Las aristas en rojo punteado son las **calles críticas** de Potosí. Si esas calles se cierran (por un accidente, construcción, o desastre), el flujo de tráfico entre origen y destino cae a **cero**. Son los verdaderos cuellos de botella de la red vial.
@@ -468,7 +504,13 @@ FordFulkerson(sourceVertex, sinkVertex).then(result => {
 **Pasos:**
 1. Localiza el nodo más cercano al Hospital Daniel Bracamonte (zona central, Av. Antofagasta) y anota su clave
 2. Elige dos puntos de emergencia en zonas distintas del mapa (una cercana y una periférica) y anota sus claves
-3. En `main.ts`, configura origen y destino y activa `Dijkstra(startVertex, targetVertex)`
+3. En `main.ts`, configura origen y destino y activa Dijkstra con destino:
+   ```typescript
+   Dijkstra(startVertex, targetVertex).then((result) => {
+       console.log('[SEDES] Distancia:', result.totalDistance, 'px');
+       console.log('[SEDES] Nodos visitados:', result.visitedCount);
+   });
+   ```
 4. Anota la distancia total en píxeles desde la consola
 5. Aplica: $D = \text{px} \times 0.60$, luego $t = \frac{D/1000}{25} \times 60$
 6. Repite con el segundo punto de emergencia y compara los tiempos
@@ -520,6 +562,8 @@ Al hacer **clic** sobre cualquier punto del mapa aparece un panel con:
 | **Visitado** | `Sí` si el último algoritmo pasó por este nodo |
 | **Distancia** | Distancia acumulada calculada por Dijkstra |
 | **Predecesor** | Nodo anterior en el camino más corto (Dijkstra) |
+| **Tipo** | Tipo de vía OSM (`residential`, `primary`, `trunk`, etc.) |
+| **Calles** | Nombre(s) de las calles conectadas al nodo (dato OSM) |
 
 ---
 
