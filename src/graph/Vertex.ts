@@ -1,6 +1,8 @@
 import Edge from './Edge';
 import getCanvas from '../graph-ui/canvas/canvas';
 
+export type LabelStatus = 'temporary' | 'permanent';
+
 class Vertex {
     label: string;
     neighbors: Edge[] = [];
@@ -8,6 +10,11 @@ class Vertex {
     x: number = 0;
     y: number = 0;
     canvas: HTMLCanvasElement;
+    // Etiqueta Dijkstra: [distancia, predecesor]
+    distance: number = Infinity;
+    predecessor: Vertex | null = null;
+    labelStatus: LabelStatus = 'temporary';
+
     constructor(label: string) {
         this.label = label;
         this.canvas = getCanvas();
@@ -29,6 +36,13 @@ class Vertex {
     }
     setVisited(visited: boolean) {
         this.visited = visited;
+    }
+    // Devuelve la etiqueta en formato [distancia, predecesor]
+    getDijkstraLabel(): string {
+        const dist = this.distance === Infinity ? '∞' : this.distance.toFixed(2);
+        const pred = this.predecessor ? this.predecessor.label : '-';
+        const status = this.labelStatus === 'permanent' ? '*' : '';
+        return `[${dist}, ${pred}]${status}`;
     }
     addNeighbor(destination: Vertex, weight: Number | null) {
         const edge: Edge = new Edge(null, this);

@@ -1,13 +1,51 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
-  </head>
-  <body>
-    <canvas id="app" width="1024" height="700"></canvas>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite + TS</title>
+</head>
+
+<body>
+  <div id="toolbar">
+    <span id="toolbar-title">🗺 Graph Map</span>
+    <div id="zoom-controls">
+      <button id="zoom-in" title="Zoom in">＋</button>
+      <span id="zoom-label">100%</span>
+      <button id="zoom-out" title="Zoom out">－</button>
+      <button id="zoom-reset" title="Reset zoom">⊙</button>
+    </div>
+  </div>
+  <div id="node-tooltip" class="hidden" style="
+    position:fixed;
+    z-index:9999;
+    top:60px;
+    right:16px;
+    background:rgba(10,15,40,0.88);
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:10px;
+    padding:0;
+    color:#ffffff;
+    font-size:12px;
+    font-family:Inter,system-ui,sans-serif;
+    min-width:230px;
+    max-width:300px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.7);
+    user-select:none;
+    line-height:1.8;
+  ">
+    <div id="tooltip-header">
+      <span id="tooltip-header-title">📍 Nodo Info</span>
+      <button id="tooltip-close" title="Cerrar">×</button>
+    </div>
+    <div id="tooltip-content"></div>
+  </div>
+  <div id="canvas-wrapper">
+    <canvas id="app" width="6000" height="5000"></canvas>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

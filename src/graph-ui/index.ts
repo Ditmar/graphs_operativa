@@ -7,8 +7,12 @@ const positionX = 500;
 const positionY = 450;
 let integerX: any = null;
 let integerY: any = null;
-const scaleX = (lon: number) => (lon + 180) * (getCanvas().width / 360) * totalScale;
-const scaleY = (lat: number) => (90 - lat) * (getCanvas().height / 180) * totalScale;
+// Reference dimensions are frozen to the original 1024×700 so that
+// changing the canvas size (for scrolling) does not distort the city.
+const REF_W = 1024;
+const REF_H = 700;
+const scaleX = (lon: number) => (lon + 180) * (REF_W / 360) * totalScale;
+const scaleY = (lat: number) => (90 - lat) * (REF_H / 180) * totalScale;
 
 function transFormPoint(firstCoord: number, secondCoord: number) {
     const coorsX = scaleX(firstCoord);
