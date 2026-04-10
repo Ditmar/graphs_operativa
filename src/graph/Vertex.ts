@@ -44,7 +44,7 @@ class Vertex {
         const status = this.labelStatus === 'permanent' ? '*' : '';
         return `[${dist}, ${pred}]${status}`;
     }
-    addNeighbor(destination: Vertex, weight: Number | null, lanes: number = 1, streetName: string = '') {
+    addNeighbor(destination: Vertex, weight: Number | null, lanes: number = 1, streetName: string = '', highway: string = '') {
         const edge: Edge = new Edge(null, this);
         edge.setDestination(destination);
         edge.setLabel(`${this.label}_${destination.label}`);
@@ -53,6 +53,7 @@ class Vertex {
         }
         edge.setLanes(lanes);
         edge.setStreetName(streetName);
+        edge.setHighway(highway);
         this.neighbors.push(edge);
         return edge;
     }

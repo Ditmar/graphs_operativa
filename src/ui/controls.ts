@@ -98,6 +98,9 @@ export function setupTooltip(canvas: HTMLCanvasElement, graph: Record<string, Ve
         const streets = [...new Set(
             v.getNeighbors().map(e => e.streetName).filter(n => n !== '')
         )];
+        const highways = [...new Set(
+            v.getNeighbors().map(e => e.highway).filter(n => n !== '')
+        )];
         tooltipContent.innerHTML = `
             <strong>&#9679; Nodo</strong>
             <span><em>Label</em>    <b>${v.label}</b></span>
@@ -107,6 +110,7 @@ export function setupTooltip(canvas: HTMLCanvasElement, graph: Record<string, Ve
             <span><em>Visitado</em> <b>${v.visited ? 'Sí' : 'No'}</b></span>
             ${v.distance !== Infinity ? `<span><em>Distancia</em> <b>${v.distance.toFixed(2)}</b></span>` : ''}
             ${v.predecessor ? `<span><em>Predecesor</em> <b>${v.predecessor.label}</b></span>` : ''}
+            ${highways.length > 0 ? `<span><em>Tipo</em>    <b>${highways.join(' / ')}</b></span>` : ''}
             ${streets.length > 0 ? `<span><em>Calles</em> <b>${streets.join(' / ')}</b></span>` : ''}
         `;
 

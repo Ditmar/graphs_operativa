@@ -9,6 +9,8 @@ class Edge {
     lanes: number = 1;
     /** Street name from OSM 'name' property */
     streetName: string = '';
+    /** Road type from OSM 'highway' property */
+    highway: string = '';
     constructor(label: string | null = '', source: Vertex | null = null) {
         this.label = label;
         this.source = source;
@@ -32,6 +34,9 @@ class Edge {
     }
     setStreetName(name: string) {
         this.streetName = name;
+    }
+    setHighway(highway: string) {
+        this.highway = highway;
     }
 }
 export default Edge;

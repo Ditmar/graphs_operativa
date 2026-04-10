@@ -5,8 +5,6 @@ import { delay } from '../../graph-ui/utils';
 
 export const Prim = async (source: Vertex) => {
     const ctx = getCanvas().getContext('2d');
-
-    // Cola de prioridad: aristas ordenadas por peso (menor primero)
     const edgeQueue: Edge[] = [];
 
     source.setVisited(true);
@@ -19,11 +17,8 @@ export const Prim = async (source: Vertex) => {
     edgeQueue.sort((a, b) => Number(a.weight) - Number(b.weight));
 
     while (edgeQueue.length > 0) {
-        // Tomar la arista de menor peso
         const minEdge = edgeQueue.shift()!;
         const neighbor = minEdge.destination;
-
-        // Saltar si el destino ya esta en el MST
         if (!neighbor || neighbor.visited) continue;
 
         neighbor.setVisited(true);
@@ -40,8 +35,6 @@ export const Prim = async (source: Vertex) => {
 
         neighbor.paint(neighbor.getX(), neighbor.getY(), ctx);
         await delay(1);
-
-        // Agregar aristas del nuevo vertice incorporado al MST
         neighbor.getNeighbors().forEach((edge) => {
             if (edge.destination && !edge.destination.visited) {
                 edgeQueue.push(edge);

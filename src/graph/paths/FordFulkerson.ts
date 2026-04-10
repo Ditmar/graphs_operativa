@@ -20,6 +20,12 @@ export interface AugmentingPath {
 
 /** Full result returned by FordFulkerson. */
 export interface FordFulkersonResult {
+    /** Traffic demand requested (units). Infinity means "find max flow". */
+    demand: number;
+    /** Whether the network was saturated before the demand was fully met. */
+    isSaturated: boolean;
+    /** Saturation ratio: maxFlow / demand (capped at 1). */
+    saturationRatio: number;
     /** Source vertex of the flow network. */
     source: Vertex;
     /** Sink vertex of the flow network. */
@@ -144,13 +150,11 @@ function reachableInResidual(
 /**
  * Ford-Fulkerson maximum-flow algorithm using BFS (Edmonds-Karp variant).
  *
- * @param source           Source vertex (s).
- * @param sink             Sink vertex (t).
- * @param sourceMultiplier Optional multiplier applied to the capacity of every
- *                         edge leaving `source` in the residual graph.  Use
- *                         values > 1 to simulate a high-supply source and
- *                         reveal deeper bottlenecks inside the network.
- *                         The original graph (Edge.lanes) is NOT modified.
+ * @param source  Source vertex (s).
+ * @param sink    Sink vertex (t).
+ * @param demand  Traffic demand to route (default: Infinity = find max flow).
+ *                When demand > max-flow the network saturates and bottlenecks
+ *                are highlighted with their saturation percentage.
  * @returns       {@link FordFulkersonResult} with max-flow, every augmenting
  *                path + its bottleneck, residual capacities, flow map and
  *                minimum-cut information.
@@ -158,7 +162,7 @@ function reachableInResidual(
 export const FordFulkerson = async (
     source: Vertex,
     sink: Vertex,
-    sourceMultiplier: number = 1
+    demand: number = Infinity
 ): Promise<FordFulkersonResult> => {
     const ctx = getCanvas().getContext('2d');
 
@@ -182,9 +186,7 @@ export const FordFulkerson = async (
             const u = v;
             const w = edge.destination;
             const rawCap = edge.lanes;
-            // Apply multiplier only to edges leaving the source vertex
-            const multiplier = (u === source && sourceMultiplier > 1) ? sourceMultiplier : 1;
-            const cap = rawCap > 0 ? rawCap * multiplier : 0;
+            const cap = rawCap > 0 ? rawCap : 0;
 
             // Forward residual capacity (additive for parallel edges, uses multiplied cap)
             residual.get(u)!.set(w, (residual.get(u)!.get(w) ?? 0) + cap);
@@ -207,13 +209,11 @@ export const FordFulkerson = async (
     const augmentingPaths: AugmentingPath[] = [];
     const bottlenecks: number[] = [];
 
-    console.log(`[FF] Starting Ford-Fulkerson from "${source.label}" to "${sink.label}"`);
-    if (sourceMultiplier !== 1)
-        console.log(`[FF] Source capacity multiplier: ×${sourceMultiplier}`);
+    console.log(`[FF] Starting Ford-Fulkerson from "${source.label}" to "${sink.label}" | Demand: ${demand === Infinity ? '∞ (max flow)' : demand}`);
 
     let predecessorMap = bfsResidual(source, sink, residual);
 
-    while (predecessorMap !== null) {
+    while (predecessorMap !== null && maxFlow < demand) {
         iteration++;
 
         // Reconstruct path from predecessor map
@@ -225,7 +225,8 @@ export const FordFulkerson = async (
         }
 
         // Find bottleneck: minimum residual capacity along the path
-        let bottleneck = Infinity;
+        // Clamp to remaining demand so we never push more flow than requested
+        let bottleneck = Math.min(demand - maxFlow, Infinity);
         for (let i = 0; i < path.length - 1; i++) {
             const cap = residual.get(path[i])!.get(path[i + 1]) ?? 0;
             if (cap < bottleneck) bottleneck = cap;
@@ -256,9 +257,9 @@ export const FordFulkerson = async (
         };
         augmentingPaths.push(record);
 
-        console.log(
-            `[FF] Iter ${iteration} | Path: ${record.pathLabels.join(' → ')} | Bottleneck: ${bottleneck} | Cumulative flow: ${maxFlow}`
-        );
+        // console.log(
+        //     `[FF] Iter ${iteration} | Path: ${record.pathLabels.join(' → ')} | Bottleneck: ${bottleneck} | Cumulative flow: ${maxFlow}`
+        // );
 
         // Draw augmenting path on canvas
         if (ctx && path.length > 1) {
@@ -281,14 +282,26 @@ export const FordFulkerson = async (
             const mid = path[Math.floor(path.length / 2)];
             ctx.fillStyle = `hsl(${hue}, 100%, 75%)`;
             ctx.font = 'bold 11px monospace';
-            ctx.fillText(`#${iteration} bn:${bottleneck}`, mid.getX() + 5, mid.getY() - 5);
+            const demandLabel = demand !== Infinity ? ` d:${demand}` : '';
+            ctx.fillText(`#${iteration} bn:${bottleneck}${demandLabel}`, mid.getX() + 5, mid.getY() - 5);
         }
 
         await delay(1);
         predecessorMap = bfsResidual(source, sink, residual);
     }
 
-    // ── 3. Minimum cut (S-T partition after termination) ─────────────────────
+    // ── 3. Saturation metadata ────────────────────────────────────────────────
+    const isSaturated     = predecessorMap === null;   // no more augmenting paths
+    const saturationRatio = demand === Infinity ? 1 : Math.min(1, maxFlow / demand);
+
+    if (isSaturated && demand !== Infinity && maxFlow < demand) {
+        console.warn(
+            `[FF] ⚠  Network saturated! Demand: ${demand}, Achieved: ${maxFlow} ` +
+            `(${(saturationRatio * 100).toFixed(1)}% — missing ${demand - maxFlow} units)`
+        );
+    }
+
+    // ── 4. Minimum cut (S-T partition after termination) ─────────────────────
     const minCutS = reachableInResidual(source, residual);
 
     const minCutEdges: FordFulkersonResult['minCutEdges'] = [];
@@ -302,9 +315,11 @@ export const FordFulkerson = async (
         });
     });
 
-    // ── 4. Summary ────────────────────────────────────────────────────────────
+    // ── 5. Summary ────────────────────────────────────────────────────────────
     console.log(`\n[FF] ── RESULT ──────────────────────────────────`);
+    console.log(`[FF] Demand:    ${demand === Infinity ? '∞ (max flow)' : demand}`);
     console.log(`[FF] Max Flow (${source.label} → ${sink.label}): ${maxFlow}`);
+    console.log(`[FF] Saturation: ${(saturationRatio * 100).toFixed(1)}%${isSaturated && maxFlow < demand ? ' ← SATURATED (bottlenecks active)' : ''}`);
     console.log(`[FF] Total augmenting paths found: ${augmentingPaths.length}`);
     console.log(`[FF] Bottlenecks per iteration: [${bottlenecks.join(', ')}]`);
     console.log(`[FF] Min-cut edges (capacity sum = ${maxFlow}):`);
@@ -321,13 +336,26 @@ export const FordFulkerson = async (
             bottleneckVertices.add(e.to);
 
             ctx.beginPath();
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 3;
+            // Thicker line when saturated and demand was not met
+            ctx.strokeStyle = isSaturated && maxFlow < demand ? '#ff0000' : 'red';
+            ctx.lineWidth = isSaturated && maxFlow < demand ? 4 : 3;
             ctx.setLineDash([6, 3]);
             ctx.moveTo(e.from.getX(), e.from.getY());
             ctx.lineTo(e.to.getX(), e.to.getY());
             ctx.stroke();
             ctx.setLineDash([]);
+
+            // Saturation % label on the cut edge (when demand was not fully met)
+            if (isSaturated && demand !== Infinity && maxFlow < demand) {
+                const mx = (e.from.getX() + e.to.getX()) / 2;
+                const my = (e.from.getY() + e.to.getY()) / 2;
+                ctx.fillStyle = '#ff0000';
+                ctx.font = 'bold 9px monospace';
+                ctx.fillText(
+                    `${(saturationRatio * 100).toFixed(0)}% sat`,
+                    mx + 4, my - 4
+                );
+            }
         });
 
         // Draw each bottleneck vertex as a large highlighted circle
@@ -364,6 +392,9 @@ export const FordFulkerson = async (
     return {
         source,
         sink,
+        demand,
+        isSaturated,
+        saturationRatio,
         maxFlow,
         augmentingPaths,
         residualCapacities: residual,
