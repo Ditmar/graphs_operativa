@@ -175,8 +175,8 @@ export const FordFulkerson = async (
             if (!edge.destination) return;
             const u = v;
             const w = edge.destination;
-            const rawCap = Number(edge.weight);
-            const cap = isFinite(rawCap) ? rawCap : 0;
+            const rawCap = edge.lanes;  // capacidad por tipo de calle (no distancia)
+            const cap = rawCap > 0 ? rawCap : 0;
 
             // Forward residual capacity (additive for parallel edges)
             residual.get(u)!.set(w, (residual.get(u)!.get(w) ?? 0) + cap);

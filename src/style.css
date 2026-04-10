@@ -116,7 +116,6 @@ h1 {
   max-width: 300px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.7);
   pointer-events: auto;
-  user-select: none;
   line-height: 1.8;
   font-size: 12px;
 }
@@ -132,6 +131,7 @@ h1 {
   padding: 8px 12px 6px;
   cursor: grab;
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  user-select: none;
 }
 
 #tooltip-header:active {
@@ -164,6 +164,8 @@ h1 {
 #tooltip-content {
   padding: 10px 14px 12px;
   line-height: 2;
+  user-select: text;
+  cursor: text;
 }
 
 #tooltip-content strong {

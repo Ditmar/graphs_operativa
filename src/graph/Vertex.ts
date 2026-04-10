@@ -44,13 +44,15 @@ class Vertex {
         const status = this.labelStatus === 'permanent' ? '*' : '';
         return `[${dist}, ${pred}]${status}`;
     }
-    addNeighbor(destination: Vertex, weight: Number | null) {
+    addNeighbor(destination: Vertex, weight: Number | null, lanes: number = 1, streetName: string = '') {
         const edge: Edge = new Edge(null, this);
         edge.setDestination(destination);
         edge.setLabel(`${this.label}_${destination.label}`);
         if (weight) {
             edge.setWeight(weight);
         }
+        edge.setLanes(lanes);
+        edge.setStreetName(streetName);
         this.neighbors.push(edge);
         return edge;
     }
