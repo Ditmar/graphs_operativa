@@ -144,15 +144,21 @@ function reachableInResidual(
 /**
  * Ford-Fulkerson maximum-flow algorithm using BFS (Edmonds-Karp variant).
  *
- * @param source  Source vertex (s).
- * @param sink    Sink vertex (t).
+ * @param source           Source vertex (s).
+ * @param sink             Sink vertex (t).
+ * @param sourceMultiplier Optional multiplier applied to the capacity of every
+ *                         edge leaving `source` in the residual graph.  Use
+ *                         values > 1 to simulate a high-supply source and
+ *                         reveal deeper bottlenecks inside the network.
+ *                         The original graph (Edge.lanes) is NOT modified.
  * @returns       {@link FordFulkersonResult} with max-flow, every augmenting
  *                path + its bottleneck, residual capacities, flow map and
  *                minimum-cut information.
  */
 export const FordFulkerson = async (
     source: Vertex,
-    sink: Vertex
+    sink: Vertex,
+    sourceMultiplier: number = 1
 ): Promise<FordFulkersonResult> => {
     const ctx = getCanvas().getContext('2d');
 
@@ -175,17 +181,19 @@ export const FordFulkerson = async (
             if (!edge.destination) return;
             const u = v;
             const w = edge.destination;
-            const rawCap = edge.lanes;  // capacidad por tipo de calle (no distancia)
-            const cap = rawCap > 0 ? rawCap : 0;
+            const rawCap = edge.lanes;
+            // Apply multiplier only to edges leaving the source vertex
+            const multiplier = (u === source && sourceMultiplier > 1) ? sourceMultiplier : 1;
+            const cap = rawCap > 0 ? rawCap * multiplier : 0;
 
-            // Forward residual capacity (additive for parallel edges)
+            // Forward residual capacity (additive for parallel edges, uses multiplied cap)
             residual.get(u)!.set(w, (residual.get(u)!.get(w) ?? 0) + cap);
 
             // Backward residual edge starts at 0 (only inserted once)
             if (!residual.get(w)!.has(u)) residual.get(w)!.set(u, 0);
 
-            // Original capacity (also additive for parallel edges)
-            originalCapacity.get(u)!.set(w, (originalCapacity.get(u)!.get(w) ?? 0) + cap);
+            // Original capacity stores REAL rawCap (never multiplied) — for correct min-cut reporting
+            originalCapacity.get(u)!.set(w, (originalCapacity.get(u)!.get(w) ?? 0) + rawCap);
 
             // Flow initialised to 0
             flow.get(u)!.set(w, 0);
@@ -200,6 +208,8 @@ export const FordFulkerson = async (
     const bottlenecks: number[] = [];
 
     console.log(`[FF] Starting Ford-Fulkerson from "${source.label}" to "${sink.label}"`);
+    if (sourceMultiplier !== 1)
+        console.log(`[FF] Source capacity multiplier: ×${sourceMultiplier}`);
 
     let predecessorMap = bfsResidual(source, sink, residual);
 
@@ -302,9 +312,14 @@ export const FordFulkerson = async (
         console.log(`  ${e.from.label} → ${e.to.label}  (capacity: ${e.capacity})`)
     );
 
-    // Draw min-cut edges in red and paint their vertices
+    // Draw min-cut edges in red dashed and highlight bottleneck vertices
     if (ctx) {
+        // Collect unique bottleneck vertices (both sides of every cut edge)
+        const bottleneckVertices = new Set<Vertex>();
         minCutEdges.forEach((e) => {
+            bottleneckVertices.add(e.from);
+            bottleneckVertices.add(e.to);
+
             ctx.beginPath();
             ctx.strokeStyle = 'red';
             ctx.lineWidth = 3;
@@ -313,8 +328,36 @@ export const FordFulkerson = async (
             ctx.lineTo(e.to.getX(), e.to.getY());
             ctx.stroke();
             ctx.setLineDash([]);
-            e.from.paint(e.from.getX(), e.from.getY(), ctx);
-            e.to.paint(e.to.getX(), e.to.getY(), ctx);
+        });
+
+        // Draw each bottleneck vertex as a large highlighted circle
+        bottleneckVertices.forEach((v) => {
+            const x = v.getX();
+            const y = v.getY();
+
+            // Outer white glow ring
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+
+            // Filled orange-red core
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ff3300';
+            ctx.fill();
+
+            // Red border
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#990000';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Label below the vertex
+            ctx.fillStyle = '#cc0000';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText('bottleneck', x - 26, y + 18);
         });
     }
 
