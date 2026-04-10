@@ -14,7 +14,7 @@ class Vertex {
     distance: number = Infinity;
     predecessor: Vertex | null = null;
     labelStatus: LabelStatus = 'temporary';
-
+    labelString: string = '';
     constructor(label: string) {
         this.label = label;
         this.canvas = getCanvas();
@@ -56,6 +56,9 @@ class Vertex {
         edge.setHighway(highway);
         this.neighbors.push(edge);
         return edge;
+    }
+    setLabelString(label: string) {
+        this.labelString = label;
     }
     paint(x: number, y: number, ctx) {
         if (this.canvas === null) {

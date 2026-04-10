@@ -2,7 +2,7 @@ import { drawGraph } from './graph-ui/index';
 // import { Bfs }         from './graph/paths/Bfs'
 // import { Dfs }         from './graph/paths/Dfs'
 // import { Prim }        from './graph/paths/Prim'
-// import { Dijkstra }    from './graph/paths/Dijkstra'
+import { Dijkstra }    from './graph/paths/Dijkstra'
 // import { FordFulkerson }  from './graph/paths/FordFulkerson';
 import { setupPan, setupZoom, setupTooltip } from './ui/controls';
 
@@ -13,7 +13,7 @@ const canvas  = document.getElementById('app') as HTMLCanvasElement;
 // ── Build graph ───────────────────────────────────────────────────────────────
 const graph         = drawGraph();
 
-//const  sourceVertex   = graph['737.4545777775347_409.59055555518717'];
+const  sourceVertex   = graph['737.4545777775347_409.59055555518717'];
 
 // ── UI controls ───────────────────────────────────────────────────────────────
 setupPan(wrapper);
@@ -34,9 +34,9 @@ setupTooltip(canvas, graph);
 //     });
 // });
 
-// Dijkstra(sourceVertex).then((result) => {
-//     console.log('[Dijkstra] Nodos visitados:', result.visitedCount);
-// });
+Dijkstra(sourceVertex).then((result) => {
+    console.log('[Dijkstra] Distancia total (px):', result.totalDistance.toFixed(2));
+});
 
 // Dijkstra(sourceVertex, sinkVertex).then((result) => {
 //     console.log('[Dijkstra] Distancia total (px):', result.totalDistance.toFixed(2));

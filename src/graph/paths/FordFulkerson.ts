@@ -223,24 +223,17 @@ export const FordFulkerson = async (
             path.unshift(node);
             node = predecessorMap.get(node) ?? null;
         }
-
-        // Find bottleneck: minimum residual capacity along the path
-        // Clamp to remaining demand so we never push more flow than requested
         let bottleneck = Math.min(demand - maxFlow, Infinity);
         for (let i = 0; i < path.length - 1; i++) {
             const cap = residual.get(path[i])!.get(path[i + 1]) ?? 0;
             if (cap < bottleneck) bottleneck = cap;
         }
 
-        // Update residual capacities and flow along the path
         for (let i = 0; i < path.length - 1; i++) {
             const u = path[i];
             const v = path[i + 1];
-            // Decrease forward residual
             residual.get(u)!.set(v, (residual.get(u)!.get(v) ?? 0) - bottleneck);
-            // Increase backward residual
             residual.get(v)!.set(u, (residual.get(v)!.get(u) ?? 0) + bottleneck);
-            // Update net flow
             flow.get(u)!.set(v, (flow.get(u)!.get(v) ?? 0) + bottleneck);
             flow.get(v)!.set(u, (flow.get(v)!.get(u) ?? 0) - bottleneck);
         }
