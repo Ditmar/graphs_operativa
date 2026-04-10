@@ -1,9 +1,9 @@
 import { drawGraph } from './graph-ui/index';
 // import { Bfs }         from './graph/paths/Bfs'
 // import { Dfs }         from './graph/paths/Dfs'
-import { Prim }        from './graph/paths/Prim'
-import { Dijkstra }    from './graph/paths/Dijkstra'
-import { FordFulkerson }  from './graph/paths/FordFulkerson';
+// import { Prim }        from './graph/paths/Prim'
+// import { Dijkstra }    from './graph/paths/Dijkstra'
+// import { FordFulkerson }  from './graph/paths/FordFulkerson';
 import { setupPan, setupZoom, setupTooltip } from './ui/controls';
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -13,8 +13,7 @@ const canvas  = document.getElementById('app') as HTMLCanvasElement;
 // ── Build graph ───────────────────────────────────────────────────────────────
 const graph         = drawGraph();
 
-const  sourceVertex   = graph['737.4545777775347_409.59055555518717'];
-const sinkVertex  = graph['2010.7672888888046_776.5538888890296'];
+//const  sourceVertex   = graph['737.4545777775347_409.59055555518717'];
 
 // ── UI controls ───────────────────────────────────────────────────────────────
 setupPan(wrapper);
@@ -24,8 +23,32 @@ setupTooltip(canvas, graph);
 // ── Algoritmos ────────────────────────────────────────────────────────────────
 // Bfs(sourceVertex);
 // Dfs(sourceVertex);
- Prim(sourceVertex);
-//Dijkstra(sourceVertex);
+
+// Prim(sourceVertex).then((result) => {
+//     console.log('[Prim] Vértices alcanzados:', result.vertexCount);
+//     console.log('[Prim] Aristas en el MST:  ', result.edgeCount);
+//     console.log('[Prim] Peso total (px):    ', result.totalWeight.toFixed(2));
+//     // Lista completa de aristas ordenadas de menor a mayor peso:
+//     result.mstEdges.forEach((edge, i) => {
+//         console.log(`  [${i + 1}] ${edge.source?.label} → ${edge.destination?.label} | peso: ${Number(edge.weight).toFixed(2)} px`);
+//     });
+// });
+
+// Dijkstra(sourceVertex).then((result) => {
+//     console.log('[Dijkstra] Nodos visitados:', result.visitedCount);
+// });
+
+// Dijkstra(sourceVertex, sinkVertex).then((result) => {
+//     console.log('[Dijkstra] Distancia total (px):', result.totalDistance.toFixed(2));
+//     console.log('[Dijkstra] Nodos visitados:     ', result.visitedCount);
+//     console.log('[Dijkstra] Camino mínimo:       ', result.path.map(v => v.label).join(' → '));
+// }).catch((err) => {
+//     console.error('[Dijkstra] Error durante la ejecución:', err);
+// });
+
+//  Prim(sourceVertex).then((result) => {
+//         console.log('[Prim] Vértices alcanzados:', result.totalWeight);
+//  });
 
 /** Demanda de tráfico a enrutar.
  *  - Infinity  → calcula el flujo máximo real (comportamiento original)

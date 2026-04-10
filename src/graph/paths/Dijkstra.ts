@@ -2,7 +2,20 @@ import Vertex from '../Vertex';
 import getCanvas from '../../graph-ui/canvas/canvas';
 import { delay } from '../../graph-ui/utils';
 
-export const Dijkstra = async (source: Vertex, target?: Vertex) => {
+export interface DijkstraResult {
+    /** Vértice origen */
+    source: Vertex;
+    /** Vértice destino (undefined si se corrió sin destino) */
+    target: Vertex | undefined;
+    /** Distancia mínima del origen al destino (Infinity si no se alcanzó) */
+    totalDistance: number;
+    /** Cantidad de nodos que se volvieron permanentes */
+    visitedCount: number;
+    /** Secuencia de vértices del camino mínimo (vacío si no hay destino) */
+    path: Vertex[];
+}
+
+export const Dijkstra = async (source: Vertex, target?: Vertex): Promise<DijkstraResult> => {
     const ctx = getCanvas().getContext('2d');
 
     // Inicializar etiqueta del origen: [0, -]
@@ -12,6 +25,7 @@ export const Dijkstra = async (source: Vertex, target?: Vertex) => {
 
     // Conjunto de vertices con etiqueta temporal (no procesados aun)
     const unvisited: Vertex[] = [source];
+    let visitedCount = 0;
 
     while (unvisited.length > 0) {
         // Seleccionar vertice con menor distancia temporal (etiqueta minima)
@@ -22,6 +36,7 @@ export const Dijkstra = async (source: Vertex, target?: Vertex) => {
         current.labelStatus = 'permanent';
         current.setVisited(true);
         current.paint(current.getX(), current.getY(), ctx);
+        visitedCount++;
         console.log(`Permanente: ${current.label} ${current.getDijkstraLabel()}`);
 
         await delay(1);
@@ -50,22 +65,39 @@ export const Dijkstra = async (source: Vertex, target?: Vertex) => {
         });
     }
 
-    // Si hay destino, reconstruir y dibujar el camino minimo
+    // Reconstruir camino minimo si hay destino
+    const path: Vertex[] = [];
     if (target) {
-        drawShortestPath(target, ctx);
+        let current: Vertex | null = target;
+        while (current !== null) {
+            path.unshift(current);
+            current = current.predecessor;
+        }
+        drawShortestPath(path, ctx);
     }
+
+    const totalDistance = target ? target.distance : source.distance;
+
+    const result: DijkstraResult = {
+        source,
+        target,
+        totalDistance,
+        visitedCount,
+        path,
+    };
+
+    console.log('── Dijkstra Result ─────────────────────────────────');
+    console.log('[Dijkstra] Nodos visitados (permanentes):', result.visitedCount);
+    if (target) {
+        console.log('[Dijkstra] Distancia total (px):', result.totalDistance === Infinity ? '∞ (destino inalcanzable)' : result.totalDistance.toFixed(2));
+        console.log('[Dijkstra] Camino mínimo:', result.path.map(v => v.label).join(' → '));
+    }
+
+    return result;
 };
 
-function drawShortestPath(target: Vertex, ctx: CanvasRenderingContext2D | null) {
-    if (!ctx) return;
-
-    const path: Vertex[] = [];
-    let current: Vertex | null = target;
-
-    while (current !== null) {
-        path.unshift(current);
-        current = current.predecessor;
-    }
+function drawShortestPath(path: Vertex[], ctx: CanvasRenderingContext2D | null) {
+    if (!ctx || path.length === 0) return;
 
     console.log('Camino minimo:', path.map(v => `${v.label} ${v.getDijkstraLabel()}`).join(' → '));
 
