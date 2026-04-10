@@ -1,6 +1,6 @@
 import Vertex from '../Vertex';
 import getCanvas from '../../graph-ui/canvas/canvas';
-//import { delay } from '../../graph-ui/utils';
+import { delay } from '../../graph-ui/utils';
 
 export interface DijkstraResult {
     source: Vertex;
@@ -29,6 +29,7 @@ export const Dijkstra = async (source: Vertex, target?: Vertex): Promise<Dijkstr
         visitedCount++;
         current.setLabelString(current.getDijkstraLabel());
         vertexList.push(current);
+        await delay(1);
         if (target && current === target) break;
         current.getNeighbors().forEach((edge) => {
             const neighbor = edge.destination;
