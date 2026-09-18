@@ -111,7 +111,16 @@ export function drawGraph() {
         const cap        = highwayCapacity(feature.properties);
         const streetName = (feature.properties?.name as string | undefined) ?? '';
         const highway    = (feature.properties?.highway as string | undefined) ?? '';
-        if (feature.geometry.type === 'LineString') {
+        const oneway     = (feature.properties?.oneway as string | undefined) ?? '';
+        // OSM: 'yes' solo permite avanzar en el orden de los nodos de la vía,
+        // '-1' solo permite el sentido inverso; cualquier otro valor (o su ausencia) es bidireccional.
+        const forwardAllowed  = oneway !== '-1';
+        const backwardAllowed = oneway !== 'yes';
+        // Solo las líneas con tag 'highway' son calles reales. El export de OSM
+        // también incluye ríos, vías férreas, cercas y líneas eléctricas como
+        // LineString — sin este filtro se cuelan al grafo de tráfico con una
+        // capacidad heurística falsa (ver highwayCapacity's 'default' case).
+        if (feature.geometry.type === 'LineString' && highway !== '') {
             ctx.beginPath();
             feature.geometry.coordinates.forEach((line: number[], index: number) => {
                 const [firstCoord, secondCoord] = line;
@@ -119,19 +128,19 @@ export function drawGraph() {
                 if (index === 0) {
                     ctx.moveTo(x, y);
                 } else {
-                    
+
                     ctx.lineTo(x, y);
                 }
                 drawCircle(x, y, 1);
                 const vertex = getVertex(graph, x, y);
-                if (index + 1 < feature.geometry.coordinates.length) {
+                if (index + 1 < feature.geometry.coordinates.length && forwardAllowed) {
                     const next = feature.geometry.coordinates[index + 1];
                     const [firstCoord, secondCoord] = next;
                     const {x: x2, y: y2} = transFormPoint(firstCoord, secondCoord);
                     const nextVertex = getVertex(graph, x2, y2);
                     vertex?.addNeighbor(nextVertex, calculateDistance({x, y}, {x: x2, y: y2}), cap, streetName, highway);
                 }
-                if (index > 0) {
+                if (index > 0 && backwardAllowed) {
                     const prev = feature.geometry.coordinates[index - 1];
                     const [firstCoord, secondCoord] = prev;
                     const {x: x2, y: y2} = transFormPoint(firstCoord, secondCoord);

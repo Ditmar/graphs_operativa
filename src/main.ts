@@ -3,7 +3,8 @@ import { drawGraph } from './graph-ui/index';
 // import { Dfs }         from './graph/paths/Dfs'
 // import { Prim }        from './graph/paths/Prim'
 import { Dijkstra }    from './graph/paths/Dijkstra'
-// import { FordFulkerson }  from './graph/paths/FordFulkerson';
+import { AStar }       from './graph/paths/AStar'
+import { FordFulkerson }  from './graph/paths/FordFulkerson';
 import { setupPan, setupZoom, setupTooltip } from './ui/controls';
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -13,7 +14,8 @@ const canvas  = document.getElementById('app') as HTMLCanvasElement;
 // ── Build graph ───────────────────────────────────────────────────────────────
 const graph         = drawGraph();
 
-const  sourceVertex   = graph['737.4545777775347_409.59055555518717'];
+const  sourceVertex   = graph['897.4263111115433_484.717222222127'];
+const sinkVertex     = graph['1051.06613333337_1551.8088888889179'];
 
 // ── UI controls ───────────────────────────────────────────────────────────────
 setupPan(wrapper);
@@ -34,16 +36,28 @@ setupTooltip(canvas, graph);
 //     });
 // });
 
-Dijkstra(sourceVertex).then((result) => {
+// Dijkstra(sourceVertex).then((result) => {
+//     console.log('[Dijkstra] Distancia total (px):', result.totalDistance.toFixed(2));
+// });
+
+Dijkstra(sourceVertex, sinkVertex).then((result) => {
     console.log('[Dijkstra] Distancia total (px):', result.totalDistance.toFixed(2));
+    console.log('[Dijkstra] Nodos visitados:     ', result.visitedCount);
+    console.log('[Dijkstra] Camino mínimo:       ', result.path.map(v => v.label).join(' → '));
+}).catch((err) => {
+    console.error('[Dijkstra] Error durante la ejecución:', err);
 });
 
-// Dijkstra(sourceVertex, sinkVertex).then((result) => {
-//     console.log('[Dijkstra] Distancia total (px):', result.totalDistance.toFixed(2));
-//     console.log('[Dijkstra] Nodos visitados:     ', result.visitedCount);
-//     console.log('[Dijkstra] Camino mínimo:       ', result.path.map(v => v.label).join(' → '));
+// A* — mismo resultado óptimo que Dijkstra, pero normalmente visitando
+// muchos menos nodos gracias a la heurística (distancia en línea recta al destino).
+// Corré primero Dijkstra y después esto con el MISMO par origen-destino
+// para comparar 'visitedCount' y 'elapsedMs' (ver Escenario 7 de LABORATORIO.md).
+// AStar(sourceVertex, sinkVertex).then((result) => {
+//     console.log('[A*] Distancia total (px):', result.totalDistance.toFixed(2));
+//     console.log('[A*] Nodos visitados:      ', result.visitedCount);
+//     console.log('[A*] Tiempo (ms):          ', result.elapsedMs.toFixed(1));
 // }).catch((err) => {
-//     console.error('[Dijkstra] Error durante la ejecución:', err);
+//     console.error('[A*] Error durante la ejecución:', err);
 // });
 
 //  Prim(sourceVertex).then((result) => {
@@ -59,6 +73,7 @@ Dijkstra(sourceVertex).then((result) => {
 // const DEMAND = 100;
 
 // FordFulkerson(sourceVertex, sinkVertex, DEMAND).then((result) => {
+//     console.log(result);
 //     console.log('[FF] Demand:',              result.demand === Infinity ? '∞' : result.demand);
 //     console.log('[FF] Max Flow:',            result.maxFlow);
 //     console.log('[FF] Saturation:',          `${(result.saturationRatio * 100).toFixed(1)}%`);

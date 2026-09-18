@@ -22,6 +22,13 @@ export interface AugmentingPath {
 export interface FordFulkersonResult {
     /** Traffic demand requested (units). Infinity means "find max flow". */
     demand: number;
+    /**
+     * Whether `sink` is reachable from `source` at all in the underlying graph
+     * (ignoring capacities). When false, maxFlow will be 0 not because of a
+     * real bottleneck but because source/sink sit in disconnected components
+     * of the graph — a known data artifact of the OSM export (see collectAllVertices).
+     */
+    sinkReachable: boolean;
     /** Whether the network was saturated before the demand was fully met. */
     isSaturated: boolean;
     /** Saturation ratio: maxFlow / demand (capped at 1). */
@@ -175,6 +182,21 @@ export const FordFulkerson = async (
         residual.set(v, new Map());
         flow.set(v, new Map());
     });
+
+    // ── 1b. Sanity check: is the sink even reachable from the source? ────────
+    // The OSM export used to build this graph is known to contain disconnected
+    // "islands" (streets clipped at the map boundary, ways that don't share
+    // exact endpoint coordinates). If source/sink land in different components,
+    // maxFlow will trivially be 0 — that's a data artifact, not a bottleneck.
+    const sinkReachable = allVertices.includes(sink);
+    if (!sinkReachable) {
+        console.warn(
+            `[FF] ⚠ "${sink.label}" no es alcanzable desde "${source.label}": están en componentes ` +
+            `desconectados del grafo. maxFlow será 0, pero esto NO representa un cuello de botella ` +
+            `real — probablemente sea un artefacto de los datos (calles recortadas en el borde del mapa ` +
+            `o extremos de vía que no coinciden en coordenadas). Prueba con otro par de nodos.`
+        );
+    }
 
     // Store the original capacity of every edge (needed for min-cut output)
     const originalCapacity = new Map<Vertex, Map<Vertex, number>>();
@@ -386,6 +408,7 @@ export const FordFulkerson = async (
         source,
         sink,
         demand,
+        sinkReachable,
         isSaturated,
         saturationRatio,
         maxFlow,

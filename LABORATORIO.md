@@ -25,6 +25,7 @@ src/
 │       ├── Bfs.ts             ← Búsqueda en anchura (BFS)
 │       ├── Dfs.ts             ← Búsqueda en profundidad (DFS)
 │       ├── Dijkstra.ts        ← Camino más corto (Dijkstra)
+│       ├── AStar.ts           ← Camino más corto con heurística (A*)
 │       ├── Prim.ts            ← Árbol de expansión mínimo (Prim)
 │       └── FordFulkerson.ts   ← Flujo máximo / Corte mínimo
 └── graph-ui/
@@ -53,38 +54,42 @@ Haz **clic sobre cualquier nodo** para ver su información en el tooltip.
 Abre `src/main.ts`. Al final del archivo encontrarás estas líneas comentadas:
 
 ```typescript
-// ── Activa el algoritmo que quieras probar ─────────────────────────────
-// Bfs(startVertex);
-// Dfs(startVertex);
+// ── Algoritmos ────────────────────────────────────────────────────────────────
+// Bfs(sourceVertex);
+// Dfs(sourceVertex);
 
-// Prim(startVertex).then((result) => {
+// Prim(sourceVertex).then((result) => {
 //     console.log('[Prim] Peso total:', result.totalWeight, 'px');
 //     console.log('[Prim] Aristas MST:', result.edgeCount);
 // });
 
-// Dijkstra(startVertex, targetVertex).then((result) => {
+// Dijkstra (activo por defecto):
+Dijkstra(sourceVertex).then((result) => {
+    console.log('[Dijkstra] Distancia total (px):', result.totalDistance.toFixed(2));
+});
+
+// Dijkstra(sourceVertex, targetVertex).then((result) => {
 //     console.log('[Dijkstra] Distancia:', result.totalDistance, 'px');
-//     console.log('[Dijkstra] Nodos visitados:', result.visitedCount);
+//     console.log('[Dijkstra] Camino:', result.path.map(v => v.label).join(' → '));
 // });
 
-// Ford-Fulkerson (activo por defecto):
-FordFulkerson(sourceVertex, sinkVertex).then((result) => {
-    console.log('[FF] Max Flow:', result.maxFlow);
-    console.log('[FF] Min-cut edges:', result.minCutEdges.length);
-});
+// FordFulkerson(sourceVertex, sinkVertex).then((result) => {
+//     console.log('[FF] Max Flow:', result.maxFlow);
+//     console.log('[FF] Min-cut edges:', result.minCutEdges.length);
+// });
 ```
 
 **Para activar un algoritmo:**
-1. Comenta la línea del Ford-Fulkerson que está activa (o déjala)
+1. Comenta la línea del algoritmo que está activo (o déjala)
 2. Descomenta la línea del algoritmo que quieres ejecutar
 3. Guarda el archivo — Vite recarga automáticamente
 
 ### Cambiar el vértice de inicio
 
-El vértice de inicio está fijado en:
+El vértice de inicio (`sourceVertex`) está fijado en `src/main.ts` con la clave de un nodo real del mapa:
 
 ```typescript
-const startVertex = graph[''];
+const sourceVertex = graph['737.4545777775347_409.59055555518717'];
 ```
 
 La **clave** de cada vértice es su posición en canvas: `"x_y"`.  
@@ -104,7 +109,7 @@ Explora el grafo nivel por nivel usando una **cola (queue)**. Visita primero tod
 
 **Activación en `main.ts`:**
 ```typescript
-Bfs(startVertex);
+Bfs(sourceVertex);
 ```
 
 **Lo que verás:** Los nodos se van pintando en rojo desde el origen hacia afuera, nivel a nivel.
@@ -125,7 +130,7 @@ Explora el grafo siguiendo un camino hasta el final antes de retroceder. Usa **r
 
 **Activación en `main.ts`:**
 ```typescript
-Dfs(startVertex);
+Dfs(sourceVertex);
 ```
 
 **Preguntas para reflexionar:**
@@ -144,13 +149,13 @@ Encuentra el **camino de menor peso** entre dos vértices. Usa etiquetas tempora
 
 **Activación en `main.ts`:**
 ```typescript
-Dijkstra(startVertex).then((result) => {
+Dijkstra(sourceVertex).then((result) => {
     console.log('[Dijkstra] Nodos visitados:', result.visitedCount);
     console.log('[Dijkstra] Distancia total:', result.totalDistance);
 });
 
 // Con destino específico:
-Dijkstra(startVertex, targetVertex).then((result) => {
+Dijkstra(sourceVertex, targetVertex).then((result) => {
     console.log('[Dijkstra] Distancia:', result.totalDistance, 'px');
     console.log('[Dijkstra] Camino:', result.path.map(v => v.label).join(' → '));
 });
@@ -159,9 +164,10 @@ Dijkstra(startVertex, targetVertex).then((result) => {
 Para definir un destino, primero encuentra su clave haciendo clic en el nodo:
 ```typescript
 const targetVertex = graph['CANVAS_X_CANVAS_Y'];
-Dijkstra(startVertex, targetVertex).then((result) => {
+Dijkstra(sourceVertex, targetVertex).then((result) => {
     console.log('[Dijkstra] Distancia:', result.totalDistance, 'px');
 });
+```
 
 **Lo que verás:**
 - Nodos visitados se pintan en rojo a medida que se procesan
@@ -190,13 +196,13 @@ Dijkstra resuelve exactamente esto: a partir del nodo Hospital, expande etiqueta
 1. Identifica el nodo más cercano al **Hospital Daniel Bracamonte** (Av. Antofagasta, zona central). Haz clic sobre él en el mapa → anota su clave `"X_Y"`.
 2. En `main.ts` define el origen:
    ```typescript
-   const startVertex = graph['CLAVE_HOSPITAL'];
+   const sourceVertex = graph['CLAVE_HOSPITAL'];
    ```
 3. Identifica el nodo de destino (simula una dirección de emergencia). Haz clic → anota su clave.
 4. Activa Dijkstra con destino específico:
    ```typescript
    const targetVertex = graph['CLAVE_EMERGENCIA'];
-   Dijkstra(startVertex, targetVertex).then((result) => {
+   Dijkstra(sourceVertex, targetVertex).then((result) => {
        console.log('[SEDES] Distancia total:', result.totalDistance, 'px');
        console.log('[SEDES] Nodos visitados:', result.visitedCount);
        console.log('[SEDES] Camino:', result.path.map(v => v.label).join(' → '));
@@ -246,7 +252,34 @@ $$t \text{ (min)} = \frac{D_{\text{metros}}}{1000} \div 25 \times 60$$
 
 ---
 
-### 4.4 Prim — Árbol de Expansión Mínima (MST)
+### 4.4 A* — Camino Más Corto con Heurística
+
+**Archivo:** `src/graph/paths/AStar.ts`
+
+A* es una evolución de Dijkstra: en vez de expandir siempre el nodo con menor distancia acumulada desde el origen (`g`), expande el nodo con menor `f = g + h`, donde `h` es una **heurística** — una estimación de cuánto falta para llegar al destino. En esta app, `h` es la distancia en línea recta (euclidiana) hasta el nodo destino, calculada con la misma función `calculateDistance` que ya usa el resto del grafo.
+
+Como la línea recta nunca puede ser más larga que el camino real por las calles, la heurística **nunca sobreestima** el costo restante — esto garantiza que A* sigue encontrando el camino óptimo, exactamente igual que Dijkstra. La diferencia es *cómo* llega ahí: Dijkstra explora en todas direcciones por igual (como una onda expansiva), mientras que A* "apunta" hacia el destino y descarta antes las direcciones que claramente se alejan.
+
+**En el contexto de la ciudad:** Responde la misma pregunta que Dijkstra (*"¿cuál es la ruta más corta de A a B?"*), pero es el algoritmo que realmente usan aplicaciones como Google Maps o Waze, porque en un mapa real explorar "toda la ciudad por igual" (como hace Dijkstra) desperdicia trabajo cuando ya sabés hacia dónde tenés que ir.
+
+**Activación en `main.ts`:**
+```typescript
+AStar(sourceVertex, sinkVertex).then((result) => {
+    console.log('[A*] Distancia total (px):', result.totalDistance.toFixed(2));
+    console.log('[A*] Nodos visitados:      ', result.visitedCount);
+    console.log('[A*] Tiempo (ms):          ', result.elapsedMs.toFixed(1));
+});
+```
+
+**Lo que verás:** igual que Dijkstra, los nodos visitados se pintan en rojo y el camino final se dibuja sobre el mapa — pero en **naranja** (en vez del amarillo de Dijkstra) para poder distinguirlos si corrés ambos y comparás visualmente cuántos nodos rojos deja cada uno a los costados de la ruta real.
+
+**Preguntas para reflexionar:**
+- ¿Por qué la heurística usada (distancia en línea recta) nunca puede "engañar" al algoritmo y hacerlo devolver un camino subóptimo?
+- ¿En qué tipo de mapa esperarías que A* casi no ayude respecto a Dijkstra? (Pista: pensá en una heurística que no distinga bien direcciones — por ejemplo, un laberinto con muchos callejones sin salida.)
+
+---
+
+### 4.5 Prim — Árbol de Expansión Mínima (MST)
 
 **Archivo:** `src/graph/paths/Prim.ts`
 
@@ -256,7 +289,7 @@ Construye el **árbol de expansión mínima**: conecta todos los nodos del grafo
 
 **Activación en `main.ts`:**
 ```typescript
-Prim(startVertex).then((result) => {
+Prim(sourceVertex).then((result) => {
     console.log('[Prim] Aristas MST:', result.edgeCount);
     console.log('[Prim] Vértices alcanzados:', result.vertexCount);
     console.log('[Prim] Peso total:', result.totalWeight, 'px');
@@ -291,7 +324,7 @@ $$\text{Costo} = \mathbf{Bs.\, 95} \text{ por metro lineal}$$
 
 1. Ejecuta Prim y observa las aristas verdes en el canvas:
    ```typescript
-   Prim(startVertex).then((result) => {
+   Prim(sourceVertex).then((result) => {
        console.log('[Prim] Peso total:', result.totalWeight, 'px');
        console.log('[Prim] Aristas:', result.edgeCount);
    });
@@ -328,7 +361,7 @@ $$\text{Costo} = \mathbf{Bs.\, 95} \text{ por metro lineal}$$
 
 ---
 
-### 4.5 Ford-Fulkerson — Flujo Máximo y Cuello de Botella
+### 4.6 Ford-Fulkerson — Flujo Máximo y Cuello de Botella
 
 **Archivo:** `src/graph/paths/FordFulkerson.ts`
 
@@ -336,9 +369,8 @@ Calcula el **flujo máximo** que puede pasar de una fuente (origen) a un sumider
 
 **En el contexto de la ciudad:** Responde: *"¿Cuánto tráfico máximo puede fluir desde la zona A hasta la zona B? ¿Dónde se generan los cuellos de botella?"*
 
-**Activación en `main.ts`** (ya activo por defecto):
+**Activación en `main.ts`:**
 ```typescript
-const sourceVertex = startVertex;
 const sinkVertex = Object.values(graph)[Object.values(graph).length - 1];
 FordFulkerson(sourceVertex, sinkVertex).then((result) => {
     console.log('[FF] Max Flow:', result.maxFlow);
@@ -489,7 +521,7 @@ FordFulkerson(sourceVertex, sinkVertex).then(result => {
 **Objetivo:** Determinar el tendido mínimo de cable de fibra óptica para cubrir toda la ciudad y estimar el costo de la inversión.
 
 **Pasos:**
-1. Activa `Prim(startVertex)` y espera a que termine la visualización
+1. Activa `Prim(sourceVertex)` y espera a que termine la visualización
 2. En la consola (`F12`) anota el **peso total del MST** en píxeles
 3. Aplica la fórmula de conversión: $D = \text{peso (px)} \times 0.60 \text{ m}$
 4. Calcula: $\text{Costo} = D \times 95 \text{ Bs./m}$
@@ -506,7 +538,7 @@ FordFulkerson(sourceVertex, sinkVertex).then(result => {
 2. Elige dos puntos de emergencia en zonas distintas del mapa (una cercana y una periférica) y anota sus claves
 3. En `main.ts`, configura origen y destino y activa Dijkstra con destino:
    ```typescript
-   Dijkstra(startVertex, targetVertex).then((result) => {
+   Dijkstra(sourceVertex, targetVertex).then((result) => {
        console.log('[SEDES] Distancia:', result.totalDistance, 'px');
        console.log('[SEDES] Nodos visitados:', result.visitedCount);
    });
@@ -529,6 +561,51 @@ FordFulkerson(sourceVertex, sinkVertex).then(result => {
 6. Repite cambiando el nodo destino a un barrio diferente y compara si cambian las tuberías críticas
 7. Registra en la tabla de la sección 6
 
+### Escenario 7: Eficiencia — Dijkstra vs A*
+
+**Objetivo:** Medir cuánto trabajo se ahorra A* frente a Dijkstra al resolver exactamente el mismo problema (misma ruta óptima), usando `visitedCount` como métrica de eficiencia — no el tiempo en milisegundos, porque ambos algoritmos usan el mismo `delay(1)` por nodo pintado, así que el tiempo termina siendo casi proporcional al número de nodos visitados de todos modos.
+
+**Por qué `visitedCount` y no el reloj:** cada nodo que un algoritmo "visita" implica leer sus vecinos, comparar distancias y (en este código) pintar un punto en el canvas. Ese es el trabajo real del algoritmo. El tiempo en milisegundos que ves en consola mide lo mismo, pero inflado por la animación — así que dos corridas con igual `visitedCount` deberían dar un `elapsedMs` parecido, y esa relación es justamente lo que vas a comprobar.
+
+**Pasos:**
+1. Elegí un par origen-destino con buena distancia entre sí (mientras más lejos estén, más notoria la diferencia). Usá el tooltip para anotar ambas claves.
+2. En `main.ts`, comenta Ford-Fulkerson y activa **Dijkstra con destino**:
+   ```typescript
+   Dijkstra(sourceVertex, sinkVertex).then((result) => {
+       console.log('[Dijkstra] Nodos visitados:', result.visitedCount);
+       console.log('[Dijkstra] Distancia total:', result.totalDistance.toFixed(2));
+   });
+   ```
+3. Guarda, espera a que termine de pintar, y anota `visitedCount` y `totalDistance` de la consola.
+4. Comenta Dijkstra, descomenta el bloque de **A*** (mismo `sourceVertex`/`sinkVertex`, sin tocarlos):
+   ```typescript
+   AStar(sourceVertex, sinkVertex).then((result) => {
+       console.log('[A*] Nodos visitados:', result.visitedCount);
+       console.log('[A*] Distancia total:', result.totalDistance.toFixed(2));
+       console.log('[A*] Tiempo (ms):    ', result.elapsedMs.toFixed(1));
+   });
+   ```
+5. Guarda y anota `visitedCount`, `totalDistance` y `elapsedMs` de A*.
+6. Verifica: **¿coincide `totalDistance` entre ambos?** Si no coincide, algo está mal (revisa que uses el mismo par origen-destino).
+7. Calcula el ahorro: $\text{Reducción} = \left(1 - \dfrac{\text{visitedCount}_{A*}}{\text{visitedCount}_{Dijkstra}}\right) \times 100\%$
+8. Repite con un segundo par origen-destino, esta vez eligiendo dos puntos **cercanos entre sí**. Compara la reducción obtenida con la del paso 7 — ¿es igual de grande?
+
+##### Tabla de eficiencia (complétala con tus resultados)
+
+| Campo | Dijkstra | A* |
+|-------|----------|-----|
+| Par lejano — Nodos visitados | ___ | ___ |
+| Par lejano — Distancia total (px) | ___ | ___ |
+| Par lejano — % reducción de nodos visitados | — | ___ % |
+| Par cercano — Nodos visitados | ___ | ___ |
+| Par cercano — Distancia total (px) | ___ | ___ |
+| Par cercano — % reducción de nodos visitados | — | ___ % |
+
+**Preguntas para reflexionar:**
+- ¿La reducción de nodos visitados fue mayor en el par lejano o en el cercano? ¿A qué crees que se debe?
+- Si `totalDistance` no coincidiera entre Dijkstra y A*, ¿qué error de implementación explicaría eso? (Pista: pensá qué pasaría si la heurística *sobreestimara* el costo restante.)
+- ¿Por qué A* no ayuda para el caso de uso de BFS/Prim/Ford-Fulkerson tal como están planteados en este laboratorio? (Pista: pensá qué necesita A* que esos algoritmos no tienen.)
+
 ---
 
 ## 6. Tabla de Resultados
@@ -547,6 +624,8 @@ Completa esta tabla para cada experimento:
 | 8 | **Dijkstra (SEDES)** | Hospital | Emergencia 2 | Distancia = ___ m | Tiempo = ___ min |
 | 9 | **Ford-Fulkerson (SEMAPA)** | Khara Khara | Barrio alto 1 | Max Flow = ___ | Corte mínimo = ___ aristas |
 | 10 | **Ford-Fulkerson (SEMAPA)** | Khara Khara | Barrio alto 2 | Max Flow = ___ | ¿Cambiaron las tuberías críticas? |
+| 11 | **Dijkstra vs A* (par lejano)** | | | Nodos visitados: ___ vs ___ | Reducción = ___ % |
+| 12 | **Dijkstra vs A* (par cercano)** | | | Nodos visitados: ___ vs ___ | Reducción = ___ % |
 
 ---
 
@@ -594,6 +673,8 @@ Abre las **DevTools** con `F12` → pestaña **Console**.
 7. **El SEDES Potosí establece que el tiempo máximo de respuesta de una ambulancia debe ser de 8 minutos.** Con los resultados de Dijkstra, ¿hay zonas de la ciudad que superen ese límite desde el Hospital Daniel Bracamonte? ¿Qué solución de infraestructura propondrías (un segundo hospital, una base de ambulancias, una vía de acceso rápido)?
 
 8. **SEMAPA necesita priorizar la renovación de una sola tubería con presupuesto limitado.** Con los resultados de Ford-Fulkerson, ¿cuál arista del corte mínimo renovarías primero y por qué? ¿Cómo cambiaría el flujo máximo si esa tubería duplica su capacidad?
+
+9. **Con los resultados del Escenario 7 (Dijkstra vs A*)**, ¿por qué una app de navegación real como Waze usa un algoritmo con heurística (tipo A*) y no Dijkstra puro, aunque ambos den la ruta óptima? ¿En qué situación del mundo real la heurística de "línea recta al destino" podría fallar o dejar de ser confiable (pensá en obstáculos grandes como un cerro o un río que rodear)?
 
 ---
 

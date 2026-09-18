@@ -193,6 +193,34 @@ h1 {
   font-weight: 500;
 }
 
+#tooltip-content span.value-with-copy {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+}
+
+#tooltip-content button.copy-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 5px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+#tooltip-content button.copy-btn:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: #90cdf4;
+}
+
+#tooltip-content button.copy-btn.copied {
+  background: #2f855a;
+  border-color: #48bb78;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
